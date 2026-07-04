@@ -1,0 +1,308 @@
+
+
+uv venv
+
+python template.py 
+
+src > classifier > __init__.py 
+
+
+src > classifier > constants >  __init__.py 
+
+--------------------------------------------------
+requirements.txt added and install 
+
+src > utils > common.py file ### for yaml file read and crate directory and loading 
+
+
+config > config.yaml file ### for data sourcing , loading and unzip 
+
+params.yaml file updated 
+
+
+research > data_ingestion.ipynb file 
+
+
+-----------------------------------------------------
+
+constants > __init__.py 
+
+
+Create a new file 'config_entity.py' in entity folder  and wrtie class DataIngestionConfig
+
+
+Update the configuration Manager in src config 
+In config ---> configuration.py 
+and write details from research ---> data_ingestion.ipynb file 
+
+
+
+Update the components 
+Create a file in components folder ---> data_ingestion.py 
+and write details from research ---> data_ingestion.ipynb file 
+
+
+Update the Pipeline 
+In Pipeline folder -->> create new file 'stage_01_data_ingestion.py' 
+
+
+
+Update the main.py 
+Now run python main.py  and we will see in artifacts folder data unzip and runnig all process . 
+
+----------------------------------------------------------------------
+
+update the params.yaml
+
+Add 'prepare_base_model' in config.yaml 
+
+Now create file in research ----> prepare_base_model.ipynb 
+
+-------------------------------------------
+
+entity folder --> config_entity.py   ---> Add ---> class PrepareBaseModelConfig
+
+In config folder ---> configuration.py ---> add ---> 
+from src.cnnClassifier.entity.config_entity import PrepareBaseModelConfig
+
+
+In config folder ---> configuration.py ---> add ---> this function 
+def get_prepare_base_model_config(self) 
+
+
+In components folder ---> create file 'prepare_base_model.py' ---> And add data from prepare_base_model.ipynb 
+
+
+
+folder Pipeline ---> create new file 'stage_02_prepare_base_model.py' 
+
+For run this , we have to add this stage_02 in main.py 
+from src.cnnClassifier.pipeline.stage_02_prepare_base_model import PrepareBaseModelTrainingPipeline
+
+--------------------------------------------------------------
+
+
+Now add prepare_callbacks in config.yaml 
+
+Now create file '03_prepare_callbacks.ipynb' in 'research' folder ---> and write in this.
+
+
+Now add prepare_callbacks_config dataclass into 'entity' folder ---> 'config_entity.py' 
+
+
+Now add 'get_prepare_callback_config' function  into config folder in 'configuration.py' 
+
+
+Now go to 'components' folder ---> create file 'prepare_callbacks.py' 
+
+---------------------------------------------------------
+
+Add trainign directory in config.yaml file 
+
+Now create 'training.ipynb' file into research folder . 
+
+Now go to entity folder ---> config_entity file ---> add TrainingConfig Class  . 
+
+
+Now in config folder ----> configuration.py file ---> add get_training_config function . 
+
+
+Now in components folder ---> create training.py 
+
+
+Now in Pipeline folder ----> create stage_03_training.py 
+
+Now run python main.py 
+
+------------------------------------------------------
+
+------------------------------------------------------
+
+now create a new file '05_model_evaluation.ipynb'  in research folder . 
+
+### Now we will see that 'score.json' file has been created where we can see our total loss and accuracy of our training model . 
+We can delete this score.json 
+
+
+Now in entity folder ---> config_entity file we will add EvaluationConfig class there . 
+
+
+Now in config folder ---> configuration.py we will add get_validation_config function . 
+and we will import Pathlib library also. 
+
+Now in 'components' folder --> create ---> 'evaluation.py' 
+
+Now in pipeline' folder ---> create ---> 'stage_04_evaluation.py' 
+
+
+Now we will add STAGE_NAME = "Evaluation stage" in main.py 
+
+
+Now open the terminal and write python main.py 
+
+
+Now we can push ouur all code to github . 
+
+----------------------------------------------------
+
+
+
+Now open dvc.yaml and write all scripting . 
+
+Now open the terminal and write 
+
+dvc init 
+
+when we execute this command it will generate .dvcfolder  
+
+Now for excute the command step by step from dvc.yaml we have to write this n our terminal . 
+
+dvc repro 
+
+
+Now we will see all logs in dvc.lock 
+
+Now open the terminal and write 
+
+dvc dag 
+
+
+----------------------------------------------------------------
+
+Now in 'Pipeline' folder --> create file ---> 'predict.py' and write all code .
+
+Now create app.py file ---> write all code .
+
+In templates folder ---> index.html --> write code ..
+
+Now open the terminal and write python app.py 
+
+Now click on upload and select image and click on predict ---> It will return result . 
+
+---------------------------------------------------
+
+
+--------------------------------------------------
+
+
+Agenda :::  How to deploy our dlops project on AWS 
+
+
+Now we will Deploy this project on AWS 
+
+Create DockerFile 
+
+Now for CI/CD  we have to create main.yaml in this directory . 
+
+.github/workflows/main.yaml 
+
+And add all scripting there . 
+
+step-1 
+
+Now open AWS  ---> IAM ---> Users ---> New User(Chicken) ---> Attach Policy --->
+
+AmazonEC2ContainerRegistryFullAccess,
+AmazonEC2FullAccess 
+
+Now click on 'Create Users' ---> create Access key with access key id here . 
+
+
+step-2 
+
+AWS Home Console ---> ECR ---> Get Started ----> Create Repository(Private , name=chicken) ----> click on create Repository ----> Copy this repo's URI and save it anywhere.
+
+
+step-3 
+
+AWS Home Console ---> EC2 ---> Server-Name(chicken-machine) ---> o.s.(ubuntu) ---> 
+--------------------------
+Optional- For Production Purpose 
+When we work with the deep learning so for this we have to select GPU Instance of AMI . so we can select 'Deep Learning AMI GPU PyTorch 1.13.1 (Ubuntu 20.04) 2030530' 
+------------------------------
+
+But we will select default for right now . 
+
+Instance type (t2.xlarge) ----> storage(29GB) ---> Launch Instance . 
+
+Now open it's cli and run these commands
+
+----------------------------------------
+sudo apt-get update -y
+
+sudo apt-get upgrade
+
+#required
+
+curl -fsSL https://get.docker.com -o get-docker.sh
+
+sudo sh get-docker.sh
+
+sudo usermod -aG docker ubuntu
+
+newgrp docker
+
+-----------------------------------------
+
+
+step-4 (Configure EC2 as self-hosted runner)
+
+Go to github ---> Settings ----> Actions ---> Runners ----> New self-hosted runner ----> select Linux ---> and copy their scripts and paste it into our ec2 server one by one . 
+
+
+Enter the Name of runner group : Press Enter
+Enter the name of runner: self-hosted 
+Now you have to press enter whenever we are seeing Setting saved message . 
+
+Now again we have to run this command . 
+
+./run.sh 
+
+
+Now we will see that connected to github and listen all the jobs . 
+
+
+Now In Github ---> Runner ---> we will see 'idle' status there . 
+
+
+Now in ec2 server press cntrl+c for stop the process then we will see in our github in  runner the status is offline now . 
+
+Now again if you want to run this so for this you have to do this . 
+
+./run.sh 
+
+Now it is working perfectly . 
+
+Now we have to add our secrets so for this . 
+
+github ---> settings ----> Action ---> Secrets and variables ----> New Repository Secret . 
+
+AWS_ACCESS_KEY_ID :
+AWS_SECRET_ACCESS_KEY:
+AWS_REGION : ap-south-1
+AWS_ECR_LOGIN_URI : demo(this will come from ECR's URI)>>  566373416292.dkr.ecr.ap-south-1.amazonaws.com
+
+ECR_REPOSITORY_NAME : chicken
+
+--------------------------------------------------------------------------------
+
+Now upload all the code to the github 
+
+Now github ---> Actions ---> Now we will see 
+
+Continous Integration ---> continous deloyment . 
+
+
+Now go to our ec2 server ---> edit inboud rules(8080)
+
+<public_ip>:8080
+
+
+-------------------------------------------------------
+
+
+Delete resoueces and services 
+
+(1). Delete EC2 Instance 
+(2). Delete ECR Repository 
+(3). Delete User from IAM Role 
