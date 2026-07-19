@@ -48,13 +48,23 @@ class PrepareBaseModel:
         full_model.summary()
         return full_model
 
-    def update_base_model(self):
-        """Attach 4-class head and save updated model."""
+    def update_base_model(self, freeze_all: bool = True, freeze_till: int = None):
+        """
+        Attach 4-class head and save updated model.
+
+        Default behavior (freeze_all=True) is unchanged from before — VGG16
+        stays fully frozen, only the Dense(4) head trains.
+
+        To fine-tune later: call update_base_model(freeze_all=False, freeze_till=4)
+        to unfreeze VGG16's last 4 layers. If you do this, also lower
+        LEARNING_RATE in params.yaml (e.g. to 1e-5) for the fine-tuning run —
+        full LR on unfrozen pretrained weights will wreck them.
+        """
         self.full_model = self._prepare_full_model(
             model=self.model,
             classes=self.config.params_classes,  # ✅ reads from params.yaml → 4
-            freeze_all=True,
-            freeze_till=None,
+            freeze_all=freeze_all,
+            freeze_till=freeze_till,
             learning_rate=self.config.params_learning_rate
         )
         self.save_model(path=self.config.updated_base_model_path, model=self.full_model)
