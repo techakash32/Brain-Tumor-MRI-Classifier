@@ -5,7 +5,7 @@
 
 <!-- Typing Animation -->
 <a href="https://git.io/typing-svg">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=7C4DFF&center=true&vCenter=true&width=750&lines=VGG16+Transfer+Learning+%F0%9F%A7%A0;4-Class+Brain+MRI+Classification+%F0%9F%A7%AC;DVC+Pipeline+%2B+Experiment+Tracking+%F0%9F%94%AC;Docker+%2B+GitHub+Actions+CI%2FCD+%F0%9F%9A%80;AWS+ECR+%2B+EC2+Cloud+Deployment+%E2%98%81%EF%B8%8F;Flask+REST+API+Serving+%F0%9F%8C%90;89.7%25+Validation+Accuracy+%E2%9C%85" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=7C4DFF&center=true&vCenter=true&width=750&lines=VGG16+Transfer+Learning+%F0%9F%A7%A0;4-Class+Brain+MRI+Classification+%F0%9F%A7%AC;DVC+Pipeline+%2B+Experiment+Tracking+%F0%9F%94%AC;Docker+%2B+GitHub+Actions+CI%2FCD+%F0%9F%9A%80;AWS+ECR+%2B+EC2+Cloud+Deployment+%E2%98%81%EF%B8%8F;Flask+REST+API+Serving+%F0%9F%8C%90;89.2%25+Test+Accuracy+%E2%9C%85" alt="Typing SVG" />
 </a>
 
 <br/><br/>
@@ -21,9 +21,10 @@
 
 <br/>
 
-![Accuracy](https://img.shields.io/badge/Best_Val_Accuracy-89.7%25-brightgreen?style=flat-square&logo=checkmarx)
-![Test Accuracy](https://img.shields.io/badge/Test_Accuracy-84.6%25-blue?style=flat-square&logo=checkmarx)
+![Best Val Accuracy](https://img.shields.io/badge/Best_Val_Accuracy-89.29%25-brightgreen?style=flat-square&logo=checkmarx)
+![Test Accuracy](https://img.shields.io/badge/Test_Accuracy-89.17%25-blue?style=flat-square&logo=checkmarx)
 ![Classes](https://img.shields.io/badge/Classes-4_Tumor_Types-purple?style=flat-square)
+![Early Stopping](https://img.shields.io/badge/Early_Stopping-Enabled-orange?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 ![Status](https://img.shields.io/badge/Status-Active-success?style=flat-square)
 
@@ -43,6 +44,7 @@ What makes this project stand out is not just the model, but the **complete MLOp
 - 🐳 Docker containerization for environment consistency
 - ☁️ AWS-native deployment with ECR + EC2
 - 🌐 REST API for real-time inference
+- 🎯 Early stopping + best-checkpoint restoration to prevent overfitting from degrading the deployed model
 
 ---
 
@@ -52,10 +54,11 @@ What makes this project stand out is not just the model, but the **complete MLOp
 
 | 🎯 Problem | 🔬 Approach | 🏆 Result |
 |:---:|:---:|:---:|
-| Brain tumor classification from MRI | VGG16 Transfer Learning | **89.7% Val Accuracy** |
+| Brain tumor classification from MRI | VGG16 Transfer Learning | **89.2% Test Accuracy** |
 | Manual MRI reading is slow & costly | 4-class automated classification | Real-time REST API |
 | No reproducibility in experiments | DVC pipeline versioning | Fully reproducible runs |
 | Manual deployments are error-prone | GitHub Actions CI/CD | Push-to-deploy automation |
+| Overfitting past the best epoch | Early stopping + checkpoint restore | Val/test gap shrunk from ~5 pts to ~0.1 pt |
 
 </div>
 
@@ -80,8 +83,9 @@ What makes this project stand out is not just the model, but the **complete MLOp
 │  │  Stage 1: Data Ingest    │  Training Pipeline           │      │
 │  │  Stage 2: Base Model     │  + TensorBoard Logging       │      │
 │  │  Stage 3: Training  │    │  + Best Model Checkpointing  │      │
-│  │  Stage 4: Evaluation│    │  + Data Augmentation         │      │
-│  └──────────────┘           └─────────────────────────────┘      │
+│  │  Stage 4: Evaluation│    │  + Early Stopping (patience=5)│     │
+│  └──────────────┘           │  + Data Augmentation         │      │
+│                              └─────────────────────────────┘      │
 │                                                                   │
 │  🚀 DEPLOYMENT LAYER                                             │
 │  ┌──────────────────────────────────────────────────────────┐    │
@@ -99,7 +103,7 @@ What makes this project stand out is not just the model, but the **complete MLOp
 ```mermaid
 flowchart LR
     A[📥 Data Ingestion\nDownload & Unzip\nBrain MRI Images] --> B[🏗️ Prepare Base Model\nLoad VGG16\nFreeze Layers\nAdd 4-class Dense Head]
-    B --> C[🏋️ Model Training\nAugmentation\nBest Checkpoint\nTensorBoard]
+    B --> C[🏋️ Model Training\nAugmentation\nEarly Stopping\nBest Checkpoint\nTensorBoard]
     C --> D[📊 Evaluation\nTest Set 1680 images\nSave scores.json\nDVC Metrics]
     D --> E[🌐 Flask API\nREST Endpoint\nBase64 Input\nJSON Output]
 
@@ -147,7 +151,7 @@ Brain-Tumor-MRI-Classifier/
 │   ├── data_ingestion/            # Downloaded MRI dataset (Training/ Testing/)
 │   ├── prepare_base_model/        # VGG16 base + updated models (.h5)
 │   ├── prepare_callbacks/         # TensorBoard logs + checkpoints
-│   └── training/                  # Final trained model
+│   └── training/                  # Final trained model (best-epoch weights)
 │
 ├── 📁 config/
 │   └── config.yaml                # All path & URL configurations
@@ -162,8 +166,8 @@ Brain-Tumor-MRI-Classifier/
 │   ├── components/                # Core ML components
 │   │   ├── data_ingestion.py
 │   │   ├── prepare_base_model.py  # VGG16 transfer learning
-│   │   ├── prepare_callbacks.py   # TensorBoard + checkpointing
-│   │   ├── training.py            # Train + best model saving
+│   │   ├── prepare_callbacks.py   # TensorBoard + checkpointing + early stopping
+│   │   ├── training.py            # Train + best-checkpoint model saving
 │   │   └── evaluation.py
 │   ├── pipeline/                  # Stage orchestrators
 │   │   ├── stage_01_data_ingestion.py
@@ -202,7 +206,8 @@ Brain-Tumor-MRI-Classifier/
 | **Classes** | Glioma / Meningioma / No Tumor / Pituitary |
 | **Augmentation** | Enabled (rotation, flip, zoom, shift) |
 | **Batch Size** | 16 |
-| **Epochs** | 10 |
+| **Max Epochs** | 30 (early stopping patience = 5 on val_accuracy) |
+| **Checkpointing** | Saves best `val_accuracy` epoch only; best weights restored automatically |
 | **Trainable Params** | 100,356 (392 KB) |
 | **Total Params** | 14,815,044 (56.51 MB) |
 
@@ -214,27 +219,34 @@ Brain-Tumor-MRI-Classifier/
 ┌──────────────────────────────────────────┐
 │           TRAINING RESULTS               │
 ├──────────────────┬───────────────────────┤
-│  Best Val Acc    │       89.73%          │  ← Epoch 7
-│  Final Test Acc  │       84.64%          │  ← Unseen Testing/
-│  Test Loss       │       0.5468          │
-│  Training Images │       4,480           │
-│  Test Images     │       1,680           │
-│  Total Dataset   │       5,600 MRIs      │
-│  Classes         │       4               │
+│  Best Val Acc    │       89.29%          │  ← Epoch 6 (restored)
+│  Final Test Acc  │       89.17%          │  ← Unseen Testing/ (1,680 imgs)
+│  Test Loss        │       0.3438          │
+│  Training stopped │  Epoch 11 (early stop)│
+│  Training Images  │       4,480           │
+│  Validation Images│       1,120 (20% split)│
+│  Test Images      │       1,680           │
+│  Classes          │       4               │
 └──────────────────┴───────────────────────┘
 ```
 
-### 📈 Training Curve
+> **Fix note:** an earlier version of this pipeline saved the *last* epoch's weights instead of the best checkpoint, which silently deployed an overfit model — visible as an ~5-point gap between validation accuracy (89.7%) and test accuracy (84.6%). Adding `EarlyStopping(restore_best_weights=True)` and explicitly reloading the checkpoint file closed that gap to ~0.1 points and lifted test accuracy by +4.5 points.
 
-| Epoch | Train Acc | Val Acc |
-|-------|-----------|---------|
-| 1 | 70.7% | 79.8% |
-| 3 | 80.5% | 83.5% |
-| 4 | 82.3% | 87.7% |
-| 5 | 81.2% | 86.5% |
-| **7** | **83.5%** | **89.7% ← Best** |
-| 9 | 84.2% | 86.8% |
-| 10 | 84.8% | 83.7% |
+### 📈 Training Curve (current run)
+
+| Epoch | Train Acc | Val Acc | Val Loss | Note |
+|-------|-----------|---------|----------|------|
+| 1 | 72.3% | 83.8% | 0.5252 | first checkpoint |
+| 2 | 77.7% | 81.7% | 0.4874 | |
+| 3 | 82.9% | 83.7% | 0.4733 | |
+| 4 | 81.9% | 86.7% | 0.3672 | checkpoint improved |
+| 5 | 82.8% | 89.1% | 0.3343 | checkpoint improved |
+| **6** | **84.0%** | **89.3% ← best** | **0.3447** | **restored & deployed** |
+| 7 | 82.9% | 87.6% | 0.3854 | overfitting begins |
+| 8 | 85.7% | 88.9% | 0.3550 | |
+| 9 | 85.2% | 80.3% | 0.8410 | val loss spikes |
+| 10 | 82.5% | 78.0% | 1.1025 | |
+| 11 | 84.3% | 85.5% | 0.4705 | early stopping triggered |
 
 ---
 
@@ -260,6 +272,8 @@ Brain-Tumor-MRI-Classifier/
 ![Python](https://img.shields.io/badge/Python-3.9+-blue?logo=python)
 ![Git](https://img.shields.io/badge/Git-required-orange?logo=git)
 ![Docker](https://img.shields.io/badge/Docker-optional-blue?logo=docker)
+
+> **Note on GPU training:** TensorFlow ≥ 2.11 does not support native GPU acceleration on Windows. If training feels slow (CPU-only), use WSL2 with a GPU-enabled TensorFlow build, or the TensorFlow-DirectML plugin, to use an NVIDIA GPU on Windows.
 
 ### 1️⃣ Clone the Repository
 
@@ -293,7 +307,7 @@ pip install -e .
 dvc repro
 ```
 
-> Runs all 4 stages: Data Ingestion → Prepare Base Model → Training → Evaluation
+> Runs all 4 stages: Data Ingestion → Prepare Base Model → Training (with early stopping) → Evaluation
 
 ### 5️⃣ Launch the Flask API
 
@@ -428,12 +442,14 @@ data_ingestion:
 ```yaml
 IMAGE_SIZE: [224, 224, 3]
 BATCH_SIZE: 16
-EPOCHS: 10
+EPOCHS: 30
 LEARNING_RATE: 0.001
 AUGMENTATION: True
 CLASSES: 4
 WEIGHTS: imagenet
 ```
+
+> `EPOCHS` is a ceiling, not a target — `EarlyStopping(patience=5)` halts training automatically once validation accuracy stops improving, and the best-epoch weights are restored and saved.
 
 ---
 
@@ -461,12 +477,16 @@ WEIGHTS: imagenet
 
 ## 🚧 Future Improvements
 
-- [ ] 🔢 Unfreeze VGG16 top layers for fine-tuning to push accuracy beyond 90%
+- [x] ✅ Fix checkpoint bug — save best-`val_accuracy` epoch instead of last epoch
+- [x] ✅ Add early stopping to halt training once validation accuracy plateaus
+- [ ] 🔢 Unfreeze VGG16 top layers for fine-tuning to push accuracy beyond current 89.2%
 - [ ] 📊 Integrate MLflow for richer experiment tracking
 - [ ] 🧪 Add real unit tests to CI pipeline
 - [ ] 🖼️ Build a Streamlit frontend for easy demo
 - [ ] 📱 Export model to TensorFlow Lite for mobile inference
 - [ ] 🔔 Add Grad-CAM visualization to highlight tumor regions in MRI
+- [ ] 📦 Track per-class precision/recall/F1 (not just aggregate accuracy) — critical for a class like Glioma where false negatives are costly
+- [ ] 🔐 Add API authentication, rate limiting, and HTTPS
 - [ ] 📦 Add more tumor subtypes for granular classification
 
 ---
