@@ -23,7 +23,8 @@ class ModelTrainingPipeline:
         training.get_base_model()
         training.train_valid_generator()
         training.train(
-            callback_list=callback_list
+            callback_list=callback_list,
+            checkpoint_filepath=prepare_callbacks_config.checkpoint_model_filepath
         )
 
 
@@ -39,4 +40,3 @@ if __name__ == '__main__':
     except Exception as e:
         logger.exception(e)
         raise e
-        
