@@ -200,7 +200,7 @@ And add all scripting there .
 
 step-1 
 
-Now open AWS  ---> IAM ---> Users ---> New User(Chicken) ---> Attach Policy --->
+Now open AWS  ---> IAM ---> Users ---> New User(brain) ---> Attach Policy --->
 
 AmazonEC2ContainerRegistryFullAccess,
 AmazonEC2FullAccess 
