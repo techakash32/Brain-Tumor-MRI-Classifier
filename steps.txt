@@ -215,7 +215,7 @@ AWS Home Console ---> ECR ---> Get Started ----> Create Repository(Private , nam
 
 step-3 
 
-AWS Home Console ---> EC2 ---> Server-Name(chicken-machine) ---> o.s.(ubuntu) ---> 
+AWS Home Console ---> EC2 ---> Server-Name(brain-machine) ---> o.s.(ubuntu) ---> 
 --------------------------
 Optional- For Production Purpose 
 When we work with the deep learning so for this we have to select GPU Instance of AMI . so we can select 'Deep Learning AMI GPU PyTorch 1.13.1 (Ubuntu 20.04) 2030530' 
