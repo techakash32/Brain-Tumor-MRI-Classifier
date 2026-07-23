@@ -94,6 +94,11 @@ jobs:
             -e AWS_REGION=${{ secrets.AWS_REGION }} \
             ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
+      - name: Show container logs for debugging
+        run: |
+          sleep 10
+          docker logs cnncls || true
+
       - name: Clean unused images and containers
         run: |
           docker system prune -f
